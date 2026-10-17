@@ -1,0 +1,374 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DepositGuard AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172b4d}
+nav{background:#142d4e;color:white;padding:20px 6%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-size:23px;font-weight:bold}
+button{background:#16a085;color:white;border:0;padding:12px 20px;border-radius:8px;cursor:pointer;font-weight:bold}
+button:hover{background:#117964}
+button.secondary{background:#e5edf4;color:#142d4e}
+.hero{text-align:center;background:#142d4e;color:white;padding:65px 20px}
+.hero h1{font-size:38px;margin:0 0 15px}
+.hero p{color:#cbd5e1;line-height:1.6}
+.container{max-width:1100px;margin:auto;padding:35px 20px}
+.tabs{display:flex;gap:12px;margin-bottom:25px;flex-wrap:wrap}
+.tabs button{flex:1;min-width:140px}
+.tabs button.active{
+    background:#16a085;
+    color:white;
+}
+
+.tabs button.active:hover{
+    background:#117964;
+}
+
+.tabs button.inactive{
+    background:#e5edf4;
+    color:#142d4e;
+}
+
+.tabs button.inactive:hover{
+    background:#d7e2ec;
+}
+.card{background:white;padding:25px;border-radius:14px;box-shadow:0 4px 15px #0000000a;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;margin:9px 0;font:inherit}
+textarea{min-height:100px}
+label{font-weight:bold;font-size:14px}
+.hidden{display:none}
+.muted{color:#64748b;font-size:14px}
+.tag{display:inline-block;background:#e0f5ef;color:#087b67;padding:6px 10px;border-radius:20px;font-size:12px}
+.result{background:#e7f7f1;padding:16px;border-radius:8px;margin-top:15px;white-space:pre-wrap}
+.property-image{width:100%;height:170px;object-fit:cover;border-radius:8px;background:#e5edf4}
+h2{margin-top:0}
+footer{text-align:center;padding:25px;color:#64748b}
+</style>
+</head>
+<body>
+<nav>
+<div class="logo">🛡 DepositGuard AI</div>
+<span>Rent Smarter. Protect Together.</span>
+</nav>
+
+<section class="hero">
+<h1>Rent with Confidence.</h1>
+<p>One platform for tenants and landlords.<br>
+Find properties, review contracts and document property conditions.</p>
+</section>
+
+<main class="container">
+<div class="tabs">
+<button id="tenantBtn" onclick="showPortal('tenant')">🔑 Tenant Portal</button>
+<button id="landlordBtn" onclick="showPortal('landlord')" class="secondary">🏠 Landlord Portal</button>
+</div>
+
+<section id="tenant">
+<h2>Tenant Dashboard</h2>
+<div class="grid">
+<div class="card">
+<h3>🏠 Find Properties</h3>
+<p>Browse available rental properties.</p>
+<button onclick="document.getElementById('properties').scrollIntoView()">Explore</button>
+</div>
+<div class="card">
+<h3>📄 Contract Checker</h3>
+<p>Review important clauses before signing.</p>
+<button onclick="document.getElementById('checker').scrollIntoView()">Check Contract</button>
+</div>
+<div class="card">
+<h3>📷 Inspection Notes</h3>
+<p>Document property conditions.</p>
+<button onclick="document.getElementById('inspection').scrollIntoView()">Start Inspection</button>
+</div>
+</div>
+
+<div class="card">
+<h3>Join a Property</h3>
+<label>Property Code</label>
+<input id="joinCode" placeholder="e.g. DG-12345">
+<button onclick="joinProperty()">Find Property</button>
+<div id="joinResult" class="result hidden"></div>
+</div>
+
+<div class="card" id="properties">
+<h2>Available Properties</h2>
+<input id="search" placeholder="Search by city or property name..." oninput="renderProperties()">
+<div id="propertyList" class="grid"></div>
+</div>
+
+<div class="card" id="checker">
+<h2>AI Contract Checker — Prototype</h2>
+<p>Paste a clause from your tenancy agreement.</p>
+<textarea id="clause" placeholder="Paste contract text here..."></textarea>
+<button onclick="checkContract()">Review Clause</button>
+<div id="contractResult" class="result hidden"></div>
+<p class="muted">Rule-based demonstration only. No legal advice or real AI analysis is provided.</p>
+</div>
+
+<div class="card" id="inspection">
+<h2>Property Inspection</h2>
+<label>Property Code</label>
+<input id="inspectionCode" placeholder="Property Code">
+<label>Inspection Photograph</label>
+<input type="file" id="inspectionPhoto" accept="image/*">
+<label>Condition Notes</label>
+<textarea id="inspectionNotes" placeholder="Describe existing damage or condition..."></textarea>
+<button onclick="saveInspection()">Save Inspection Record</button>
+<div id="inspectionResult" class="result hidden"></div>
+</div>
+</section>
+
+<section id="landlord" class="hidden">
+<h2>Landlord Dashboard</h2>
+<div class="grid">
+<div class="card">
+<h3>🏘 My Listings</h3>
+<p>Manage your rental properties.</p>
+</div>
+<div class="card">
+<h3>📄 Tenancy Agreements</h3>
+<p>Add contract information to your listings.</p>
+</div>
+<div class="card">
+<h3>📋 Inspection Records</h3>
+<p>Prepare move-in condition records.</p>
+</div>
+</div>
+
+<div class="card">
+<h2>List a New Property</h2>
+<form id="listingForm">
+<label>Property Title</label>
+<input id="title" required placeholder="Modern Student Apartment">
+<label>City</label>
+<input id="city" required placeholder="Durham">
+<label>Monthly Rent (£)</label>
+<input id="rent" type="number" min="1" required placeholder="650">
+<label>Deposit (£)</label>
+<input id="deposit" type="number" min="0" required placeholder="750">
+<label>Property Description</label>
+<textarea id="description" required placeholder="Describe the property..."></textarea>
+<label>Property Photo</label>
+<input id="propertyPhoto" type="file" accept="image/*">
+<label>Contract Notes (optional)</label>
+<textarea id="agreement" placeholder="Add relevant tenancy terms..."></textarea>
+<button type="submit">+ Publish Property</button>
+</form>
+<div id="publishResult" class="result hidden"></div>
+</div>
+<div class="card">
+<h2>My Properties</h2>
+<div id="landlordListings" class="grid"></div>
+</div>
+</section>
+</main>
+
+<footer>DepositGuard AI | Hackathon MVP 2026</footer>
+
+<script>
+const KEY="depositguard_demo_properties";
+let properties=JSON.parse(localStorage.getItem(KEY)||"[]");
+
+function saveProperties(){
+ localStorage.setItem(KEY,JSON.stringify(properties));
+}
+
+function showPortal(role){
+
+    document.getElementById("tenant").classList.toggle(
+        "hidden",
+        role !== "tenant"
+    );
+
+    document.getElementById("landlord").classList.toggle(
+        "hidden",
+        role !== "landlord"
+    );
+
+    const tenantBtn =
+        document.getElementById("tenantBtn");
+
+    const landlordBtn =
+        document.getElementById("landlordBtn");
+
+    if(role === "tenant"){
+
+        tenantBtn.classList.add("active");
+        tenantBtn.classList.remove("inactive");
+
+        landlordBtn.classList.add("inactive");
+        landlordBtn.classList.remove("active");
+
+    }else{
+
+        landlordBtn.classList.add("active");
+        landlordBtn.classList.remove("inactive");
+
+        tenantBtn.classList.add("inactive");
+        tenantBtn.classList.remove("active");
+    }
+
+    window.scrollTo({
+        top:250,
+        behavior:"smooth"
+    });
+}
+
+function escapeHTML(value){
+ return String(value).replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",
+ '"':"&quot;","'":"&#39;"
+ })[c]);
+}
+
+function showMessage(id,message){
+ const el=document.getElementById(id);
+ el.textContent=message;
+ el.classList.remove("hidden");
+}
+
+document.getElementById("listingForm").addEventListener("submit",async function(e){
+ e.preventDefault();
+ const photo=document.getElementById("propertyPhoto").files[0];
+ let image="";
+ if(photo){
+   image=await readImage(photo);
+ }
+ const code="DG-"+Math.random().toString(36).slice(2,8).toUpperCase();
+ const property={
+  code,
+  title:document.getElementById("title").value.trim(),
+  city:document.getElementById("city").value.trim(),
+  rent:Number(document.getElementById("rent").value),
+  deposit:Number(document.getElementById("deposit").value),
+  description:document.getElementById("description").value.trim(),
+  agreement:document.getElementById("agreement").value.trim(),
+  image
+ };
+ properties.push(property);
+ try {
+  saveProperties();
+ } catch(err){
+  properties.pop();
+  showMessage("publishResult","Storage is full. Try a smaller photo.");
+  return;
+ }
+ this.reset();
+ showMessage("publishResult","Property published! Share code: "+code);
+ renderProperties();
+ renderLandlord();
+
+ showPortal("tenant");
+});
+
+function readImage(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>resolve(reader.result);
+  reader.onerror=reject;
+  reader.readAsDataURL(file);
+ });
+}
+
+function propertyCard(p){
+ return `<div class="card">
+ ${p.image?`<img class="property-image" src="${p.image}" alt="Property">`:""}
+ <h3>${escapeHTML(p.title)}</h3>
+ <p>📍 ${escapeHTML(p.city)}</p>
+ <p><b>£${p.rent}/month</b></p>
+ <p>Deposit: £${p.deposit}</p>
+ <p>${escapeHTML(p.description)}</p>
+ <span class="tag">${escapeHTML(p.code)}</span>
+ </div>`;
+}
+
+function renderProperties(){
+ const query=document.getElementById("search").value.toLowerCase();
+ const filtered=properties.filter(p=>
+ (p.title+" "+p.city).toLowerCase().includes(query));
+ document.getElementById("propertyList").innerHTML=
+ filtered.length?filtered.map(propertyCard).join(""):
+ "<p>No matching properties yet.</p>";
+}
+
+function renderLandlord(){
+ document.getElementById("landlordListings").innerHTML=
+ properties.length?properties.map(propertyCard).join(""):
+ "<p>No properties listed yet.</p>";
+}
+
+function joinProperty(){
+ const code=document.getElementById("joinCode").value.trim().toUpperCase();
+ const p=properties.find(x=>x.code===code);
+ if(!p){
+  showMessage("joinResult","Property not found.");
+  return;
+ }
+ document.getElementById("inspectionCode").value=p.code;
+ showMessage("joinResult",
+  "Property: "+p.title+"\n"+
+  "Rent: £"+p.rent+"/month\n"+
+  "Deposit: £"+p.deposit+"\n"+
+  "Contract notes: "+(p.agreement||"Not provided")+
+  "\n\nThis is a demo lookup, not a verified tenant connection.");
+}
+
+function checkContract(){
+ const text=document.getElementById("clause").value.trim();
+ if(!text){
+  showMessage("contractResult","Please enter a clause.");
+  return;
+ }
+ const rules=[
+  [/deposit/i,"Deposit: Check the amount and protection requirements."],
+  [/repair|damage|maintenance/i,"Repairs: Review responsibility for damage and maintenance."],
+  [/clean/i,"Cleaning: Check whether cleaning obligations and charges are permitted."],
+  [/notice|terminat|break clause/i,"Notice: Review the tenancy type and termination rules."],
+  [/fee|penalty|charge/i,"Fees: Check whether additional charges are allowed."]
+ ];
+ const matches=rules.filter(r=>r[0].test(text)).map(r=>r[1]);
+ showMessage("contractResult",
+ matches.length?matches.join("\n\n"):
+ "No matching keywords. This does not mean the clause is safe.");
+}
+
+function saveInspection(){
+ const code=document.getElementById("inspectionCode").value.trim().toUpperCase();
+ const p=properties.find(x=>x.code===code);
+ if(!p){
+  showMessage("inspectionResult","Enter a valid property code.");
+  return;
+ }
+ const file=document.getElementById("inspectionPhoto").files[0];
+ const notes=document.getElementById("inspectionNotes").value.trim();
+ const content=[
+  "DEPOSITGUARD INSPECTION RECORD",
+  "Property: "+p.title,
+  "Property code: "+code,
+  "Record created: "+new Date().toISOString(),
+  "Photograph: "+(file?file.name:"None"),
+  "Notes: "+(notes||"None"),
+  "Keep the original photograph separately.",
+  "This is an unverified tenant-created record."
+ ].join("\n\n");
+ const blob=new Blob([content],{type:"text/plain"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download="inspection-"+code+".txt";
+ a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ showMessage("inspectionResult","Inspection notes downloaded. Keep the original photo.");
+}
+
+renderProperties();
+renderLandlord();
+</script>
+</body>
+</html>
